@@ -1,6 +1,7 @@
 package com.dan.veildimension;
 
 import com.dan.veildimension.block.VeilPortalFrameBlock;
+import com.dan.veildimension.block.VeilPortalBlock;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.block.Block;
 import net.minecraft.item.BlockItem;
@@ -13,6 +14,9 @@ import net.minecraft.util.Identifier;
 public class ModBlocks
 {
     public static final Block VEIL_PORTAL_FRAME = registerBlock("veil_portal_frame", new VeilPortalFrameBlock());
+
+    public static final Block VEIL_PORTAL = Registry.register(Registries.BLOCK, Identifier.of("veildimension", "veil_portal"), new VeilPortalBlock()
+    );
 
     private static Block registerBlock(String name, Block block)
     {

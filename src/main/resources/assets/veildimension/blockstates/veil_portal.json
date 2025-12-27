@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "veildimension:block/veil_portal_ew"
+    },
+    "axis=z": {
+      "model": "veildimension:block/veil_portal_ns"
+    }
+  }
+}
