@@ -15,8 +15,7 @@ public class ModBlocks
 {
     public static final Block VEIL_PORTAL_FRAME = registerBlock("veil_portal_frame", new VeilPortalFrameBlock());
 
-    public static final Block VEIL_PORTAL = Registry.register(Registries.BLOCK, Identifier.of("veildimension", "veil_portal"), new VeilPortalBlock()
-    );
+    public static final Block VEIL_PORTAL = Registry.register(Registries.BLOCK, Identifier.of("veildimension", "veil_portal"), new VeilPortalBlock());
 
     private static Block registerBlock(String name, Block block)
     {
