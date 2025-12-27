@@ -26,6 +26,8 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
+import com.dan.veildimension.util.InventoryManager;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -164,15 +166,37 @@ public class VeilPortalBlock extends Block
                         destinationPos = destinationWorld.getSpawnPos();
                     }
 
-                    // If entering Veil Dimension and is a player, give them a return scroll
-                    if (destinationKey == ModDimensions.VEIL_WORLD && entity instanceof PlayerEntity player)
+                    // If entering Veil Dimension and is a player, save inventory and give return scroll
+                    if (destinationKey == ModDimensions.VEIL_WORLD && entity instanceof ServerPlayerEntity serverPlayer)
                     {
-                        ItemStack scroll = new ItemStack(ModItems.VEIL_RETURN_SCROLL);
-                        if (!player.getInventory().contains(scroll))
+                        // Save and clear inventory BEFORE teleporting (this also loads Veil inventory)
+                        InventoryManager.saveAndClearInventory(serverPlayer);
+
+                        // Only give return scroll if player doesn't have one
+                        boolean hasScroll = false;
+                        for (int i = 0; i < serverPlayer.getInventory().size(); i++)
                         {
-                            player.giveItemStack(scroll);
-                            player.sendMessage(Text.literal("§5§oA mysterious scroll materializes in your hand...§r"), true);
+                            ItemStack stack = serverPlayer.getInventory().getStack(i);
+                            if (stack.isOf(ModItems.VEIL_RETURN_SCROLL))
+                            {
+                                hasScroll = true;
+                                break;
+                            }
                         }
+                        if (!hasScroll)
+                        {
+                            ItemStack scroll = new ItemStack(ModItems.VEIL_RETURN_SCROLL);
+                            serverPlayer.giveItemStack(scroll);
+                        }
+
+                        serverPlayer.sendMessage(Text.literal("§5§oYour belongings fade as a new journey begins...§r"), true);
+                    }
+
+                    // If LEAVING Veil Dimension, restore inventory
+                    if (destinationKey == World.OVERWORLD && entity instanceof ServerPlayerEntity serverPlayer)
+                    {
+                        InventoryManager.restoreInventory(serverPlayer);
+                        serverPlayer.sendMessage(Text.literal("§5§oYour belongings return to you as the journey comes to an end...§r"), true);
                     }
 
                     // Create teleport target with safe position

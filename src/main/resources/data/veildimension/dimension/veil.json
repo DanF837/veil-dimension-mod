@@ -3,8 +3,57 @@
   "generator": {
     "type": "minecraft:noise",
     "biome_source": {
-      "type": "minecraft:fixed",
-      "biome": "veildimension:twilight_forest"
+      "type": "minecraft:multi_noise",
+      "biomes": [
+        {
+          "biome": "veildimension:twilight_plains",
+          "parameters": {
+            "temperature": 0.0,
+            "humidity": 0.0,
+            "continentalness": 0.0,
+            "erosion": 0.0,
+            "weirdness": 0.0,
+            "depth": 0.0,
+            "offset": 0.0
+          }
+        },
+        {
+          "biome": "veildimension:enchanted_forest",
+          "parameters": {
+            "temperature": -0.3,
+            "humidity": 0.5,
+            "continentalness": 0.0,
+            "erosion": 0.0,
+            "weirdness": 0.0,
+            "depth": 0.0,
+            "offset": 0.0
+          }
+        },
+        {
+          "biome": "veildimension:crystal_desert",
+          "parameters": {
+            "temperature": 0.8,
+            "humidity": -0.5,
+            "continentalness": 0.0,
+            "erosion": 0.0,
+            "weirdness": 0.0,
+            "depth": 0.0,
+            "offset": 0.0
+          }
+        },
+        {
+          "biome": "veildimension:frozen_veil",
+          "parameters": {
+            "temperature": -0.8,
+            "humidity": 0.3,
+            "continentalness": 0.0,
+            "erosion": 0.0,
+            "weirdness": 0.0,
+            "depth": 0.0,
+            "offset": 0.0
+          }
+        }
+      ]
     },
     "settings": "minecraft:overworld"
   }

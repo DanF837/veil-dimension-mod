@@ -13,6 +13,9 @@ import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
 
+import com.dan.veildimension.util.InventoryManager;
+import net.minecraft.server.network.ServerPlayerEntity;
+
 public class VeilReturnScrollItem extends Item
 {
     public VeilReturnScrollItem(Settings settings)
@@ -21,39 +24,35 @@ public class VeilReturnScrollItem extends Item
     }
 
     @Override
-    public TypedActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand)
-    {
+    public TypedActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
         ItemStack stack = player.getStackInHand(hand);
 
         // Only works in the Veil Dimension
-        if (world.getRegistryKey() == ModDimensions.VEIL_WORLD)
-        {
-            if (!world.isClient)
-            {
+        if (world.getRegistryKey() == ModDimensions.VEIL_WORLD) {
+            if (!world.isClient && player instanceof ServerPlayerEntity serverPlayer) {
                 ServerWorld serverWorld = (ServerWorld) world;
                 ServerWorld overworld = serverWorld.getServer().getWorld(World.OVERWORLD);
 
-                if (overworld != null)
-                {
+                if (overworld != null) {
                     // Play sound and particles
-                    world.playSound(null, player.getBlockPos(), SoundEvents.ITEM_CHORUS_FRUIT_TELEPORT, SoundCategory.PLAYERS, 1.0F, 1.0F);
+                    world.playSound(null, player.getBlockPos(), SoundEvents.ITEM_CHORUS_FRUIT_TELEPORT,
+                            SoundCategory.PLAYERS, 1.0F, 1.0F);
 
                     // Teleport to Overworld spawn
-                    player.teleportTo(new TeleportTarget(overworld, player, TeleportTarget.NO_OP));
+                    player.teleportTo(new TeleportTarget(
+                            overworld,
+                            player,
+                            TeleportTarget.NO_OP
+                    ));
 
-                    // Consume the item (remove one scroll)
-                    if (!player.getAbilities().creativeMode)
-                    {
-                        stack.decrement(1);
-                    }
+                    // Restore inventory AFTER teleporting
+                    InventoryManager.restoreInventory(serverPlayer);
 
                     player.sendMessage(Text.literal("§5§oYou return through the veil...§r"), true);
                 }
             }
             return TypedActionResult.success(stack, world.isClient);
-        }
-        else
-        {
+        } else {
             // Not in Veil Dimension
             player.sendMessage(Text.literal("§c§oThis can only be used within the Veil...§r"), true);
             return TypedActionResult.fail(stack);
