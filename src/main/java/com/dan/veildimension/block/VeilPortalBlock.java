@@ -3,6 +3,7 @@ package com.dan.veildimension.block;
 import com.dan.veildimension.ModBlocks;
 import net.minecraft.block.*;
 import net.minecraft.entity.Entity;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
@@ -16,6 +17,8 @@ import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.text.Text;
 
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -122,9 +125,85 @@ public class VeilPortalBlock extends Block
     @Override
     public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random random)
     {
+        // Portal ambient sound (less frequent)
         if (random.nextInt(100) == 0)
         {
             world.playSound(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, SoundEvents.BLOCK_PORTAL_AMBIENT, SoundCategory.BLOCKS, 0.5F, random.nextFloat() * 0.4F + 0.8F, false);
+        }
+
+        // Determine which direction the portal is facing
+        Direction.Axis axis = state.get(AXIS);
+
+        // Spawn particles on both sides of the portal
+        for (int i = 0; i < 2; i++)
+        {
+            double x = pos.getX();
+            double y = pos.getY() + random.nextDouble();
+            double z = pos.getZ();
+
+            if (axis == Direction.Axis.X)
+            {
+                // Portal faces East-West
+                x += random.nextDouble();
+                z += random.nextBoolean() ? 0.1 : 0.9; // Spawn near edges
+            }
+            else
+            {
+                // Portal faces North-South
+                x += random.nextBoolean() ? 0.1 : 0.9; // Spawn near edges
+                z += random.nextDouble();
+            }
+
+            // Velocity for particles
+            double velocityX = (random.nextDouble() - 0.5) * 0.5;
+            double velocityY = (random.nextDouble() - 0.5) * 0.5;
+            double velocityZ = (random.nextDouble() - 0.5) * 0.5;
+
+            // Main portal particles (swirling effect)
+            world.addParticle(ParticleTypes.PORTAL, x, y, z, velocityX, velocityY, velocityZ);
+        }
+
+        // Add some soul particles for extra mystical effect (less frequent)
+        if (random.nextInt(3) == 0)
+        {
+            double x = pos.getX() + 0.5;
+            double y = pos.getY() + random.nextDouble();
+            double z = pos.getZ() + 0.5;
+
+            if (axis == Direction.Axis.X)
+            {
+                x += random.nextDouble() - 0.5;
+            }
+            else
+            {
+                z += random.nextDouble() - 0.5;
+            }
+
+            world.addParticle(ParticleTypes.SOUL_FIRE_FLAME, x, y, z, 0, 0.05, 0);
+        }
+
+        // Occasional sparkles
+        if (random.nextInt(5) == 0)
+        {
+            double x = pos.getX() + random.nextDouble();
+            double y = pos.getY() + random.nextDouble();
+            double z = pos.getZ() + random.nextDouble();
+
+            world.addParticle(ParticleTypes.END_ROD, x, y, z, 0, 0, 0);
+        }
+
+        // Dripping effect from top of portal (rare)
+        if (random.nextInt(10) == 0 && pos.getY() < world.getTopY() - 1)
+        {
+            BlockState above = world.getBlockState(pos.up());
+            if (above.isOf(ModBlocks.VEIL_PORTAL_FRAME))
+            {
+                double x = pos.getX() + random.nextDouble();
+                double z = pos.getZ() + random.nextDouble();
+                double y = pos.getY() + 0.99;
+
+                world.addParticle(ParticleTypes.FALLING_OBSIDIAN_TEAR, x, y, z, 0, 0, 0);
+            }
         }
     }
 
@@ -208,6 +287,15 @@ public class VeilPortalBlock extends Block
             }
         }
         world.playSound(null, bottomLeft, SoundEvents.ITEM_FLINTANDSTEEL_USE, SoundCategory.BLOCKS, 1.0F, 1.0F);
+
+        // Notify nearby players
+        for (PlayerEntity nearbyPlayer : world.getPlayers())
+        {
+            if (nearbyPlayer.squaredDistanceTo(bottomLeft.getX(), bottomLeft.getY(), bottomLeft.getZ()) < 64.0)
+            {
+                nearbyPlayer.sendMessage(Text.translatable("chat.veildimension.portal_created"), true);
+            }
+        }
         return true;
     }
 
