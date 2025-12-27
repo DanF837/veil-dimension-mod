@@ -17,6 +17,11 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
 
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.Set;
+
 public class VeilPortalBlock extends Block
 {
     public static final EnumProperty<Direction.Axis> AXIS = Properties.HORIZONTAL_AXIS;
@@ -25,7 +30,12 @@ public class VeilPortalBlock extends Block
 
     public VeilPortalBlock()
     {
-        super(Settings.create().mapColor(MapColor.PURPLE).noCollision().strength(-1.0F).sounds(BlockSoundGroup.GLASS).luminance(state -> 11));
+        super(Settings.create()
+                .mapColor(MapColor.PURPLE)
+                .noCollision()
+                .strength(-1.0F)
+                .sounds(BlockSoundGroup.GLASS)
+                .luminance(state -> 11));
         this.setDefaultState(this.stateManager.getDefaultState().with(AXIS, Direction.Axis.X));
     }
 
@@ -39,6 +49,65 @@ public class VeilPortalBlock extends Block
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder)
     {
         builder.add(AXIS);
+    }
+
+    @Override
+    protected BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos)
+    {
+        // If a frame block was removed nearby, check if portal is still valid
+        if (neighborState.isOf(Blocks.AIR) || (!neighborState.isOf(ModBlocks.VEIL_PORTAL_FRAME) && !neighborState.isOf(ModBlocks.VEIL_PORTAL)))
+        {
+            // Check if we still have a complete frame
+            if (!isPortalValid(world, pos))
+            {
+                // Break ALL connected portal blocks
+                destroyEntirePortal(world, pos);
+                return Blocks.AIR.getDefaultState();
+            }
+        }
+
+        return super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
+    }
+
+    private boolean isPortalValid(WorldAccess world, BlockPos pos)
+    {
+        // Check if there's at least one frame block adjacent
+        for (Direction dir : Direction.values())
+        {
+            if (world.getBlockState(pos.offset(dir)).isOf(ModBlocks.VEIL_PORTAL_FRAME))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void destroyEntirePortal(WorldAccess world, BlockPos startPos)
+    {
+        // Use flood fill to find and destroy all connected portal blocks
+        Set<BlockPos> visited = new HashSet<>();
+        Queue<BlockPos> toCheck = new LinkedList<>();
+        toCheck.add(startPos);
+        visited.add(startPos);
+
+        while (!toCheck.isEmpty())
+        {
+            BlockPos current = toCheck.poll();
+
+            // Check all 6 directions for more portal blocks
+            for (Direction dir : Direction.values())
+            {
+                BlockPos neighbor = current.offset(dir);
+
+                if (!visited.contains(neighbor) && world.getBlockState(neighbor).isOf(ModBlocks.VEIL_PORTAL))
+                {
+                    visited.add(neighbor);
+                    toCheck.add(neighbor);
+                    // Destroy this portal block
+                    world.setBlockState(neighbor, Blocks.AIR.getDefaultState(), 3);
+                }
+            }
+        }
     }
 
     @Override
@@ -105,7 +174,6 @@ public class VeilPortalBlock extends Block
             scanner.move(horizontalDir);
             width++;
         }
-
         int height = 0;
         scanner.set(bottomLeft);
         while (world.getBlockState(scanner).isOf(ModBlocks.VEIL_PORTAL_FRAME) && height < 21)
@@ -114,19 +182,15 @@ public class VeilPortalBlock extends Block
             height++;
         }
 
-        System.out.println("Found potential portal: width=" + width + " height=" + height + " at " + bottomLeft);
-
         // Validate dimensions (need at least 4 wide, 5 tall for a 2x3 interior)
         if (width < 4 || height < 5)
         {
-            System.out.println("Portal too small");
             return false;
         }
 
         // Verify it's a complete frame
         if (!isCompleteFrame(world, bottomLeft, width, height, horizontalDir))
         {
-            System.out.println("Frame incomplete");
             return false;
         }
 
@@ -143,9 +207,7 @@ public class VeilPortalBlock extends Block
                 }
             }
         }
-
         world.playSound(null, bottomLeft, SoundEvents.ITEM_FLINTANDSTEEL_USE, SoundCategory.BLOCKS, 1.0F, 1.0F);
-        System.out.println("Portal created successfully!");
         return true;
     }
 
@@ -159,6 +221,7 @@ public class VeilPortalBlock extends Block
                 return false;
             }
         }
+
         // Check top row
         for (int x = 0; x < width; x++)
         {
@@ -167,6 +230,7 @@ public class VeilPortalBlock extends Block
                 return false;
             }
         }
+
         // Check left side
         for (int y = 0; y < height; y++)
         {
@@ -175,6 +239,7 @@ public class VeilPortalBlock extends Block
                 return false;
             }
         }
+
         // Check right side
         for (int y = 0; y < height; y++)
         {
@@ -183,6 +248,7 @@ public class VeilPortalBlock extends Block
                 return false;
             }
         }
+
         // Check interior is air
         for (int x = 1; x < width - 1; x++)
         {
