@@ -3,21 +3,48 @@
   "temperature": 0.5,
   "downfall": 0.8,
   "effects": {
-    "fog_color": 8339455,
-    "water_color": 6388991,
-    "water_fog_color": 2302743,
-    "sky_color": 4944639,
-    "grass_color": 7842047,
-    "foliage_color": 7842047,
+    "fog_color": 2885475,
+    "water_color": 8339455,
+    "water_fog_color": 6750207,
+    "sky_color": 2885475,
+    "grass_color": 8339455,
+    "foliage_color": 8339455,
     "mood_sound": {
       "sound": "minecraft:ambient.cave",
       "tick_delay": 6000,
       "block_search_extent": 8,
       "offset": 2.0
-    }
+    },
+    "particle": {
+      "probability": 0.05,
+      "options": {
+        "type": "minecraft:portal"
+      }
+    },
+    "ambient_sound": "minecraft:ambient.cave"
   },
-  "spawners": {},
+  "spawners": {
+    "monster": [],
+    "creature": [],
+    "ambient": [],
+    "water_creature": [],
+    "water_ambient": [],
+    "misc": []
+  },
   "spawn_costs": {},
-  "carvers": {},
-  "features": []
+  "carvers": {
+    "air": []
+  },
+  "features": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+  ]
 }
