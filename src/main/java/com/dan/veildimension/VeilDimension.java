@@ -14,9 +14,9 @@ public class VeilDimension implements ModInitializer
 	public void onInitialize()
 	{
 		LOGGER.info("Initializing Veil Dimension mod...");
-
 		ModBlocks.initialize();
-
+		ModItems.initialize();
+		ModDimensions.initialize();
 		LOGGER.info("Veil Dimension mod initialized successfully!");
 	}
 }

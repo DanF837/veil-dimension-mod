@@ -1,0 +1,20 @@
+{
+  "block.veildimension.veil_portal_frame": "Veil Portal Frame",
+  "block.veildimension.veil_portal": "Veil Portal",
+  "item.veildimension.veil_igniter": "Veil Igniter",
+  "item.veildimension.veil_return_scroll": "Veil Return Scroll",
+
+  "item.veildimension.veil_igniter.tooltip": "§5§oA mystical tool that tears the fabric between worlds§r",
+  "block.veildimension.veil_portal_frame.tooltip": "§8Ancient stone infused with twilight energy§r",
+  "block.veildimension.veil_portal_frame.tooltip": "§8Ancient stone infused with twilight energy§r",
+
+  "advancement.veildimension.root": "The Veil Dimension",
+  "advancement.veildimension.root.desc": "The twilight calls to you...",
+  "advancement.veildimension.ignite_portal": "Between Worlds",
+  "advancement.veildimension.ignite_portal.desc": "Light a portal to the Veil Dimension",
+  "advancement.veildimension.enter_veil": "Beyond the Veil",
+  "advancement.veildimension.enter_veil.desc": "Step through the portal into twilight",
+
+  "chat.veildimension.igniter_failed": "§5§oThe igniter pulses... but finds no frame to bind to.§r",
+  "chat.veildimension.portal_created": "§5§oThe veil tears open before you...§r"
+}
