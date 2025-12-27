@@ -1,24 +1,28 @@
 package com.dan.veildimension.block;
 
 import com.dan.veildimension.ModBlocks;
+import com.dan.veildimension.ModDimensions;
 import net.minecraft.block.*;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.BlockView;
+import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.text.Text;
 
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -116,9 +120,24 @@ public class VeilPortalBlock extends Block
     @Override
     public void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity)
     {
-        if (!world.isClient && !entity.hasVehicle() && !entity.hasPassengers() && entity.canUsePortals(false))
+        if (world instanceof ServerWorld serverWorld)
         {
-            // Portal teleportation will go here later
+            if (entity.canUsePortals(false) && !entity.hasVehicle() && !entity.hasPassengers())
+            {
+                // Get the destination dimension
+                RegistryKey<World> destinationKey = world.getRegistryKey() == ModDimensions.VEIL_WORLD ? World.OVERWORLD : ModDimensions.VEIL_WORLD;
+
+                ServerWorld destinationWorld = serverWorld.getServer().getWorld(destinationKey);
+
+                if (destinationWorld != null)
+                {
+                    // Use the entity's built-in teleport method
+                    entity.teleportTo(new TeleportTarget(destinationWorld, entity, TeleportTarget.NO_OP));
+
+                    // Play teleport sound
+                    world.playSound(null, pos, SoundEvents.BLOCK_PORTAL_TRAVEL, SoundCategory.BLOCKS, 1.0F, 1.0F);
+                }
+            }
         }
     }
 
