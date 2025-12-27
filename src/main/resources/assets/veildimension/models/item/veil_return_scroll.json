@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "veildimension:item/veil_return_scroll"
+  }
+}

@@ -2,9 +2,11 @@ package com.dan.veildimension.block;
 
 import com.dan.veildimension.ModBlocks;
 import com.dan.veildimension.ModDimensions;
+import com.dan.veildimension.ModItems;
 import net.minecraft.block.*;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.world.ServerWorld;
@@ -17,6 +19,7 @@ import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.BlockView;
@@ -26,6 +29,7 @@ import net.minecraft.world.WorldAccess;
 
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 
@@ -131,11 +135,62 @@ public class VeilPortalBlock extends Block
 
                 if (destinationWorld != null)
                 {
-                    // Use the entity's built-in teleport method
-                    entity.teleportTo(new TeleportTarget(destinationWorld, entity, TeleportTarget.NO_OP));
+                    // Calculate safe spawn position
+                    BlockPos destinationPos;
+
+                    if (destinationKey == ModDimensions.VEIL_WORLD)
+                    {
+                        // Entering Veil - find surface level
+                        BlockPos.Mutable mutablePos = new BlockPos.Mutable(entity.getX(), 128, entity.getZ());
+
+                        // Search down for solid ground
+                        while (mutablePos.getY() > destinationWorld.getBottomY() && destinationWorld.getBlockState(mutablePos).isAir())
+                        {
+                            mutablePos.move(Direction.DOWN);
+                        }
+
+                        // Move up one block to stand on top of solid ground
+                        destinationPos = mutablePos.up().toImmutable();
+
+                        // If still underground, go to world spawn
+                        if (destinationPos.getY() < 64)
+                        {
+                            destinationPos = destinationWorld.getSpawnPos();
+                        }
+                    }
+                    else
+                    {
+                        // Returning to Overworld - use world spawn
+                        destinationPos = destinationWorld.getSpawnPos();
+                    }
+
+                    // If entering Veil Dimension and is a player, give them a return scroll
+                    if (destinationKey == ModDimensions.VEIL_WORLD && entity instanceof PlayerEntity player)
+                    {
+                        ItemStack scroll = new ItemStack(ModItems.VEIL_RETURN_SCROLL);
+                        if (!player.getInventory().contains(scroll))
+                        {
+                            player.giveItemStack(scroll);
+                            player.sendMessage(Text.literal("§5§oA mysterious scroll materializes in your hand...§r"), true);
+                        }
+                    }
+
+                    // Create teleport target with safe position
+                    Vec3d destination = new Vec3d(destinationPos.getX() + 0.5, destinationPos.getY(), destinationPos.getZ() + 0.5);
+
+                    // Teleport
+                    entity.teleportTo(new TeleportTarget(
+                            destinationWorld,
+                            destination,
+                            entity.getVelocity(),
+                            entity.getYaw(),
+                            entity.getPitch(),
+                            TeleportTarget.NO_OP
+                    ));
 
                     // Play teleport sound
-                    world.playSound(null, pos, SoundEvents.BLOCK_PORTAL_TRAVEL, SoundCategory.BLOCKS, 1.0F, 1.0F);
+                    world.playSound(null, pos, SoundEvents.BLOCK_PORTAL_TRAVEL,
+                            SoundCategory.BLOCKS, 1.0F, 1.0F);
                 }
             }
         }

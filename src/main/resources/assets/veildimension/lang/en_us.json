@@ -2,8 +2,10 @@
   "block.veildimension.veil_portal_frame": "Veil Portal Frame",
   "block.veildimension.veil_portal": "Veil Portal",
   "item.veildimension.veil_igniter": "Veil Igniter",
+  "item.veildimension.veil_return_scroll": "Veil Return Scroll",
 
   "item.veildimension.veil_igniter.tooltip": "§5§oA mystical tool that tears the fabric between worlds§r",
+  "block.veildimension.veil_portal_frame.tooltip": "§8Ancient stone infused with twilight energy§r",
   "block.veildimension.veil_portal_frame.tooltip": "§8Ancient stone infused with twilight energy§r",
 
   "advancement.veildimension.root": "The Veil Dimension",
