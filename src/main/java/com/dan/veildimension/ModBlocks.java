@@ -2,7 +2,9 @@ package com.dan.veildimension;
 
 import com.dan.veildimension.block.VeilPortalFrameBlock;
 import com.dan.veildimension.block.VeilPortalBlock;
+import com.dan.veildimension.block.SupplyCacheBlock;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
+import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
@@ -16,6 +18,8 @@ public class ModBlocks
     public static final Block VEIL_PORTAL_FRAME = registerBlock("veil_portal_frame", new VeilPortalFrameBlock());
 
     public static final Block VEIL_PORTAL = Registry.register(Registries.BLOCK, Identifier.of("veildimension", "veil_portal"), new VeilPortalBlock());
+
+    public static final Block SUPPLY_CACHE = registerBlock("supply_cache", new SupplyCacheBlock(AbstractBlock.Settings.create().strength(1.5F).luminance(state -> 7)));
 
     private static Block registerBlock(String name, Block block)
     {
@@ -32,6 +36,7 @@ public class ModBlocks
     {
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register(content -> {
             content.add(VEIL_PORTAL_FRAME);
+            content.add(SUPPLY_CACHE);
         });
     }
 }

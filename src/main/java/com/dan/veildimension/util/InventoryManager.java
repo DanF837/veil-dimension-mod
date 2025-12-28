@@ -221,4 +221,12 @@ public class InventoryManager {
         }
         return false;
     }
+
+    public static boolean hasVeilInventory(PlayerEntity player) {
+        if (player instanceof ServerPlayerEntity serverPlayer) {
+            File saveFile = getVeilSaveFile(serverPlayer);
+            return saveFile != null && saveFile.exists();
+        }
+        return false;
+    }
 }

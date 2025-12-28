@@ -3,6 +3,7 @@ package com.dan.veildimension.block;
 import com.dan.veildimension.ModBlocks;
 import com.dan.veildimension.ModDimensions;
 import com.dan.veildimension.ModItems;
+import com.dan.veildimension.util.SupplyCacheSpawner;
 import net.minecraft.block.*;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -142,23 +143,8 @@ public class VeilPortalBlock extends Block
 
                     if (destinationKey == ModDimensions.VEIL_WORLD)
                     {
-                        // Entering Veil - find surface level
-                        BlockPos.Mutable mutablePos = new BlockPos.Mutable(entity.getX(), 128, entity.getZ());
-
-                        // Search down for solid ground
-                        while (mutablePos.getY() > destinationWorld.getBottomY() && destinationWorld.getBlockState(mutablePos).isAir())
-                        {
-                            mutablePos.move(Direction.DOWN);
-                        }
-
-                        // Move up one block to stand on top of solid ground
-                        destinationPos = mutablePos.up().toImmutable();
-
-                        // If still underground, go to world spawn
-                        if (destinationPos.getY() < 64)
-                        {
-                            destinationPos = destinationWorld.getSpawnPos();
-                        }
+                        // Entering Veil - find surface level from TOP down
+                        destinationPos = findSafeSpawnPosition(destinationWorld, entity.getBlockPos());
                     }
                     else
                     {
@@ -169,8 +155,20 @@ public class VeilPortalBlock extends Block
                     // If entering Veil Dimension and is a player, save inventory and give return scroll
                     if (destinationKey == ModDimensions.VEIL_WORLD && entity instanceof ServerPlayerEntity serverPlayer)
                     {
+                        // Check if this is first time BEFORE saving inventory
+                        boolean isFirstTime = !InventoryManager.hasVeilInventory(serverPlayer);
+
                         // Save and clear inventory BEFORE teleporting (this also loads Veil inventory)
                         InventoryManager.saveAndClearInventory(serverPlayer);
+
+                        // Spawn supply cache near first-time arrivals AFTER teleport
+                        if (isFirstTime)
+                        {
+                            BlockPos finalDestinationPos = destinationPos;
+                            serverPlayer.getServer().execute(() -> {
+                                SupplyCacheSpawner.spawnSupplyCacheNearPlayer(serverPlayer, destinationWorld);
+                            });
+                        }
 
                         // Only give return scroll if player doesn't have one
                         boolean hasScroll = false;
@@ -447,5 +445,29 @@ public class VeilPortalBlock extends Block
             }
         }
         return true;
+    }
+
+    private static BlockPos findSafeSpawnPosition(ServerWorld world, BlockPos startPos)
+    {
+        BlockPos.Mutable pos = new BlockPos.Mutable(startPos.getX(), world.getTopY() - 1, startPos.getZ());
+
+        // Start at build height and go down
+        while (pos.getY() > world.getBottomY())
+        {
+            BlockState currentState = world.getBlockState(pos);
+            BlockState aboveState = world.getBlockState(pos.up());
+            BlockState twoAboveState = world.getBlockState(pos.up(2));
+
+            // Found a solid block with 2 air blocks above
+            if (currentState.isOpaque() && aboveState.isAir() && twoAboveState.isAir())
+            {
+                return pos.up().toImmutable();
+            }
+
+            pos.move(Direction.DOWN);
+        }
+
+        // Fallback to world spawn if no safe spot found
+        return world.getSpawnPos();
     }
 }
