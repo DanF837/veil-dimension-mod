@@ -1,6 +1,7 @@
 package com.dan.veildimension;
 
 import net.fabricmc.api.ModInitializer;
+import com.dan.veildimension.world.ModStructures;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +18,7 @@ public class VeilDimension implements ModInitializer
 		ModBlocks.initialize();
 		ModItems.initialize();
 		ModDimensions.initialize();
+		ModStructures.initialize();
 		LOGGER.info("Veil Dimension mod initialized successfully!");
 	}
 }

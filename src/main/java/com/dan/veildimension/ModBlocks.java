@@ -2,6 +2,7 @@ package com.dan.veildimension;
 
 import com.dan.veildimension.block.VeilPortalFrameBlock;
 import com.dan.veildimension.block.VeilPortalBlock;
+import com.dan.veildimension.block.VeilLanternBlock;
 import com.dan.veildimension.block.SupplyCacheBlock;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.block.AbstractBlock;
@@ -21,6 +22,8 @@ public class ModBlocks
 
     public static final Block SUPPLY_CACHE = registerBlock("supply_cache", new SupplyCacheBlock(AbstractBlock.Settings.create().strength(1.5F).luminance(state -> 7)));
 
+    public static final Block VEIL_LANTERN = registerBlock("veil_lantern", new VeilLanternBlock());
+
     private static Block registerBlock(String name, Block block)
     {
         registerBlockItem(name, block);
@@ -37,6 +40,7 @@ public class ModBlocks
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register(content -> {
             content.add(VEIL_PORTAL_FRAME);
             content.add(SUPPLY_CACHE);
+            content.add(VEIL_LANTERN);
         });
     }
 }

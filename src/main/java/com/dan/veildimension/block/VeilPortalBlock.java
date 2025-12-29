@@ -167,6 +167,9 @@ public class VeilPortalBlock extends Block
                             BlockPos finalDestinationPos = destinationPos;
                             serverPlayer.getServer().execute(() -> {
                                 SupplyCacheSpawner.spawnSupplyCacheNearPlayer(serverPlayer, destinationWorld);
+
+                                // Also generate lantern trail
+                                com.dan.veildimension.world.ModStructures.generateLanternTrailFromPlayer(serverPlayer, destinationWorld);
                             });
                         }
 
