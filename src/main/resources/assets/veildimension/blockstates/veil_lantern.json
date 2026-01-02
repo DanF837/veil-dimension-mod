@@ -1,7 +1,10 @@
 {
   "variants": {
-    "": {
+    "hanging=false": {
       "model": "veildimension:block/veil_lantern"
+    },
+    "hanging=true": {
+      "model": "veildimension:block/veil_lantern_hanging"
     }
   }
 }

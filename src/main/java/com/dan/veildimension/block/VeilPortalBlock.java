@@ -29,6 +29,8 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
 import com.dan.veildimension.util.InventoryManager;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.block.entity.ChestBlockEntity;
+import net.minecraft.item.Items;
 
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -395,6 +397,9 @@ public class VeilPortalBlock extends Block
                 nearbyPlayer.sendMessage(Text.translatable("chat.veildimension.portal_created"), true);
             }
         }
+
+        // ADD THIS NEW CODE HERE:
+        spawnJournalChest(world, bottomLeft);
         return true;
     }
 
@@ -472,5 +477,84 @@ public class VeilPortalBlock extends Block
 
         // Fallback to world spawn if no safe spot found
         return world.getSpawnPos();
+    }
+
+    /**
+     * Spawn a chest with Journal #1 near the newly created portal
+     */
+    private static void spawnJournalChest(World world, BlockPos portalPos) {
+        // Find a suitable location next to the portal at ground level
+        BlockPos chestPos = null;
+
+        // Try placing chest 3 blocks away from portal in each direction
+        Direction[] directions = {Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST};
+
+        for (Direction dir : directions) {
+            // Start from portal position and move outward
+            BlockPos testPos = portalPos.offset(dir, 3);
+
+            // Find ground level from this position (search down from portal height)
+            BlockPos groundPos = findGroundForChest(world, testPos);
+
+            if (groundPos != null) {
+                chestPos = groundPos;
+                break;
+            }
+        }
+
+        // Fallback: place next to portal at portal level
+        if (chestPos == null) {
+            chestPos = portalPos.offset(Direction.EAST, 3);
+        }
+
+        // Place chest
+        world.setBlockState(chestPos, Blocks.CHEST.getDefaultState(), 3);
+
+        // Fill chest with Journal #1
+        if (world.getBlockEntity(chestPos) instanceof ChestBlockEntity chest) {
+            ItemStack journal = new ItemStack(ModItems.JOURNAL_ENTRY_1);
+            chest.setStack(13, journal); // Center slot
+
+            // Add some purple dye for flavor
+            chest.setStack(11, new ItemStack(Items.PURPLE_DYE, 3));
+        }
+    }
+
+    /**
+     * Find solid ground for chest placement (search down from starting position)
+     */
+    private static BlockPos findGroundForChest(World world, BlockPos start) {
+        BlockPos.Mutable pos = start.mutableCopy();
+
+        // Search down up to 10 blocks
+        for (int i = 0; i < 10; i++) {
+            BlockState below = world.getBlockState(pos.down());
+            BlockState current = world.getBlockState(pos);
+
+            // Found solid ground with air above
+            if (below.isOpaqueFullCube(world, pos.down()) &&
+                    !below.isLiquid() &&
+                    current.isAir()) {
+                return pos.toImmutable();
+            }
+
+            pos.move(Direction.DOWN);
+        }
+
+        // Search up if we didn't find ground below
+        pos = start.mutableCopy();
+        for (int i = 0; i < 5; i++) {
+            BlockState below = world.getBlockState(pos.down());
+            BlockState current = world.getBlockState(pos);
+
+            if (below.isOpaqueFullCube(world, pos.down()) &&
+                    !below.isLiquid() &&
+                    current.isAir()) {
+                return pos.toImmutable();
+            }
+
+            pos.move(Direction.UP);
+        }
+        return null;
     }
 }

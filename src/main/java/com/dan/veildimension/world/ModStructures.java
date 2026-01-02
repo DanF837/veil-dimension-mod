@@ -2,15 +2,13 @@ package com.dan.veildimension.world;
 
 import com.dan.veildimension.ModBlocks;
 import com.dan.veildimension.ModDimensions;
-import com.dan.veildimension.world.ArchitectBaseCamp;
-import com.dan.veildimension.world.SurvivorCamp;
-import net.minecraft.util.math.random.Random;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.minecraft.block.BlockState;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.PersistentStateManager;
 
@@ -32,8 +30,7 @@ public class ModStructures {
                 if (!data.hasGeneratedStructures()) {
                     System.out.println("[VeilDimension] Generating structures for the first time...");
                     generateInitialStructures(world, data);
-                    data.markGenerated();
-                    data.markDirty();
+
                 }
             }
         });
@@ -54,31 +51,15 @@ public class ModStructures {
      * Generate initial structures in the world
      */
     private static void generateInitialStructures(ServerWorld world, VeilStructureData data) {
-        // Structures are now generated when player first enters
-        // This just marks that the world is initialized
-        System.out.println("[VeilDimension] World initialized for structure generation");
+        // Only generate survivor camps at world load
+        // Lanterns and base camp are generated when first player enters
 
-        // TODO: Add permanent structures here (not player-specific ones)
-    }
-
-    /**
-     * Generate lantern trail from player position (called on first entry)
-     */
-    public static void generateLanternTrailFromPlayer(ServerPlayerEntity player, ServerWorld world) {
-        BlockPos playerPos = player.getBlockPos();
-
-        System.out.println("[VeilDimension] Generating lantern trail from player at " + playerPos);
-
-        // Generate trail heading east
-        generateLanternTrail(world, playerPos, Direction.EAST, 50);
-
-        // Generate survivor camps scattered throughout the dimension
         Random random = world.getRandom();
 
-        // Spawn 30 camps in a large area around spawn
+        System.out.println("[VeilDimension] Generating survivor camps...");
         int campsSpawned = 0;
         int attempts = 0;
-        int maxAttempts = 100; // Try up to 100 locations
+        int maxAttempts = 100;
 
         while (campsSpawned < 30 && attempts < maxAttempts) {
             attempts++;
@@ -91,11 +72,9 @@ public class ModStructures {
             BlockPos groundPos = findGroundLevelFromTop(world, campPos);
 
             if (groundPos != null) {
-                // Check if the ground is NOT water
                 BlockState groundBlock = world.getBlockState(groundPos.down());
 
                 if (!groundBlock.isLiquid()) {
-                    // Safe to spawn - not on water!
                     SurvivorCamp.generate(world, groundPos, random);
                     campsSpawned++;
                 } else {
@@ -105,14 +84,42 @@ public class ModStructures {
         }
 
         System.out.println("[VeilDimension] Generated " + campsSpawned + " survivor camps across the dimension (attempted " + attempts + " locations)");
+
+        // DON'T mark as generated here - wait for player to enter
     }
 
+    /**
+     * Generate lantern trail from player position (called on first entry)
+     * Structures are now generated at world load, this is just for compatibility
+     */
+    public static void generateLanternTrailFromPlayer(ServerPlayerEntity player, ServerWorld world) {
+        // Check if structures have already been generated for this world
+        VeilStructureData data = getOrCreateStructureData(world);
+
+        if (data.hasGeneratedStructures()) {
+            System.out.println("[VeilDimension] Lanterns already generated, skipping");
+            return;
+        }
+
+        BlockPos playerPos = player.getBlockPos();
+
+        System.out.println("[VeilDimension] Generating lantern trail from player at " + playerPos);
+
+        // Generate trail heading east from player position
+        generateLanternTrail(world, playerPos, Direction.EAST, 30);
+
+        // Mark as generated so it doesn't happen again
+        data.markGenerated();
+        data.markDirty();
+
+        System.out.println("[VeilDimension] Lantern trail and base camp generated!");
+    }
     /**
      * Generate a trail of lanterns in a direction
      */
     private static void generateLanternTrail(ServerWorld world, BlockPos start, Direction direction, int length) {
         BlockPos.Mutable pos = start.mutableCopy();
-        BlockPos lastLanternPos = start; // Track last position
+        BlockPos lastLanternPos = start;
 
         for (int i = 0; i < length; i++) {
             // Move in direction
@@ -130,7 +137,7 @@ public class ModStructures {
                 // Place lantern on top of ground
                 world.setBlockState(groundPos, ModBlocks.VEIL_LANTERN.getDefaultState());
                 System.out.println("[VeilDimension] Placed lantern at " + groundPos);
-                lastLanternPos = groundPos; // Update last position
+                lastLanternPos = groundPos;
             } else {
                 System.out.println("[VeilDimension] Could not find ground at " + pos);
             }
@@ -138,7 +145,7 @@ public class ModStructures {
 
         // Generate base camp at the end of the trail
         if (lastLanternPos != null) {
-            BlockPos baseCampPos = lastLanternPos.offset(direction, 20); // 20 blocks past last lantern
+            BlockPos baseCampPos = lastLanternPos.offset(direction, 20);
             BlockPos groundPos = findGroundLevelFromTop(world, baseCampPos);
             if (groundPos != null) {
                 ArchitectBaseCamp.generate(world, groundPos);
@@ -147,7 +154,8 @@ public class ModStructures {
     }
 
     /**
-     * Find the ground level at a position
+     * Find the ground level by searching from top down
+     * Handles water - places on lake/ocean floor instead of surface
      */
     private static BlockPos findGroundLevelFromTop(ServerWorld world, BlockPos pos) {
         BlockPos.Mutable mutable = new BlockPos.Mutable(pos.getX(), world.getTopY(), pos.getZ());

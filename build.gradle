@@ -22,12 +22,11 @@ loom {
 	splitEnvironmentSourceSets()
 
 	mods {
-		"veildimension" {
+		veildimension {
 			sourceSet sourceSets.main
 			sourceSet sourceSets.client
 		}
 	}
-
 }
 
 fabricApi {

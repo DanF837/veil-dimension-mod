@@ -4,6 +4,7 @@ import com.dan.veildimension.ModBlocks;
 import net.minecraft.block.Blocks;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.block.BlockState;
 import net.minecraft.world.World;
 
 public class SupplyCacheSpawner {
@@ -63,30 +64,25 @@ public class SupplyCacheSpawner {
     }
 
     /**
-     * Find solid ground below a position
+     * Find solid ground below a position - search from top down
      */
     private static BlockPos findGround(World world, BlockPos start) {
-        BlockPos.Mutable pos = start.mutableCopy();
+        BlockPos.Mutable pos = new BlockPos.Mutable(start.getX(), world.getTopY(), start.getZ());
 
-        // Search down
-        for (int i = 0; i < 10; i++) {
-            if (world.getBlockState(pos).isOpaque() &&
-                    world.getBlockState(pos.up()).isAir()) {
-                return pos.up().toImmutable();
+        // Search down from world top
+        for (int y = world.getTopY(); y > world.getBottomY(); y--) {
+            pos.setY(y);
+
+            BlockState current = world.getBlockState(pos);
+            BlockState below = world.getBlockState(pos.down());
+
+            // Found solid ground with air above
+            if (below.isOpaqueFullCube(world, pos.down()) &&
+                    !below.isLiquid() &&
+                    current.isAir()) {
+                return pos.toImmutable();
             }
-            pos.move(0, -1, 0);
         }
-
-        // Search up
-        pos = start.mutableCopy();
-        for (int i = 0; i < 10; i++) {
-            if (world.getBlockState(pos).isOpaque() &&
-                    world.getBlockState(pos.up()).isAir()) {
-                return pos.up().toImmutable();
-            }
-            pos.move(0, 1, 0);
-        }
-
         return null;
     }
 

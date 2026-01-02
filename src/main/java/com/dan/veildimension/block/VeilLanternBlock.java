@@ -1,18 +1,18 @@
 package com.dan.veildimension.block;
 
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.LanternBlock;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World;
 
-public class VeilLanternBlock extends Block {
+public class VeilLanternBlock extends LanternBlock {
 
     public VeilLanternBlock() {
-        super(Settings.copy(Blocks.LANTERN)
+        super(Settings.copy(Blocks.SOUL_LANTERN)
                 .sounds(BlockSoundGroup.LANTERN)
                 .luminance(state -> 15));
     }

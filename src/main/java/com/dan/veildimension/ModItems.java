@@ -2,6 +2,7 @@ package com.dan.veildimension;
 
 import com.dan.veildimension.item.VeilIgniterItem;
 import com.dan.veildimension.item.VeilReturnScrollItem;
+import com.dan.veildimension.item.VeilEssenceItem;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroups;
@@ -15,6 +16,9 @@ public class ModItems
     public static final Item VEIL_IGNITER = registerItem("veil_igniter", new VeilIgniterItem(new Item.Settings().maxDamage(64)));
 
     public static final Item VEIL_RETURN_SCROLL = registerItem("veil_return_scroll", new VeilReturnScrollItem(new Item.Settings().maxCount(16)));
+
+    public static final Item VEIL_ESSENCE = registerItem("veil_essence", new VeilEssenceItem(new Item.Settings()));
+
 
     // Journal Entries
     public static final Item JOURNAL_ENTRY_1 = registerItem("journal_entry_1",
@@ -164,6 +168,10 @@ public class ModItems
             content.add(JOURNAL_ENTRY_18);
             content.add(JOURNAL_ENTRY_22);
             content.add(JOURNAL_ENTRY_47);
+        });
+
+        ItemGroupEvents.modifyEntriesEvent(ItemGroups.INGREDIENTS).register(content -> {
+            content.add(VEIL_ESSENCE);
         });
     }
 }
